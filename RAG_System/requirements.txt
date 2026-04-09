@@ -1,0 +1,11 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+openai==1.57.4
+certifi>=2024.8.30
+chromadb==0.5.23
+pypdf==5.1.0
+pydantic-settings==2.6.1
+python-multipart==0.0.17
+sentence-transformers>=3.0.0
+# DPR (facebook/dpr-*): use transformers 4.x so tokenizers stays <=0.20.3 (required by chromadb 0.5.23).
+transformers>=4.41.0,<4.48

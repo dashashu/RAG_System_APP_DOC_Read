@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-pdf
+  labels:
+    app: rag-pdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rag-pdf
+  template:
+    metadata:
+      labels:
+        app: rag-pdf
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: api
+          # Build: docker build -t rag-pdf:latest .
+          # Load into k3d/kind if needed; Docker Desktop uses local image when imagePullPolicy: Never or IfNotPresent
+          image: rag-pdf:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rag-openai
+                  key: OPENAI_API_KEY
+            - name: DATA_DIR
+              value: "/data"
+            - name: CHROMA_DIR
+              value: "/app/chroma_data"
+            # Set to "true" once to rebuild index after changing PDFs or switching RETRIEVAL_MODE
+            - name: RAG_FORCE_REINDEX
+              value: "false"
+            # Optional: openai_chroma | dpr_only | parallel_dpr_openai
+            # - name: RETRIEVAL_MODE
+            #   value: "openai_chroma"
+            # Optional Confluence (see .env.example); add keys to Secret or ConfigMap
+            # - name: CONFLUENCE_ENABLED
+            #   value: "true"
+            # - name: CONFLUENCE_URL
+            #   value: "https://your-site.atlassian.net/wiki"
+            # - name: CONFLUENCE_EMAIL
+            #   valueFrom: ...
+            # - name: CONFLUENCE_API_TOKEN
+            #   valueFrom:
+            #     secretKeyRef: { name: rag-openai, key: CONFLUENCE_API_TOKEN }
+            # - name: CONFLUENCE_SPACE_KEYS
+            #   value: "ENG,DOCS"
+          volumeMounts:
+            - name: chroma
+              mountPath: /app/chroma_data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+      volumes:
+        - name: chroma
+          persistentVolumeClaim:
+            claimName: rag-chroma-pvc

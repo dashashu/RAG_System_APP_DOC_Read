@@ -1,0 +1,5 @@
+# Optional: matplotlib scatter plots (local analysis; not required for API/Docker)
+-r requirements.txt
+matplotlib==3.9.3
+scikit-learn==1.6.0
+numpy==2.2.1

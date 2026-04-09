@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rag-chroma-pvc
+  labels:
+    app: rag-pdf
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  # If PVC stays Pending, set storageClassName to your cluster default (e.g. hostpath on Docker Desktop)
+  # storageClassName: hostpath
